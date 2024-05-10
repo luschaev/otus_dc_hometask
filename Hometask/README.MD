@@ -180,3 +180,62 @@ interface Loopback0
 !
 end
 ```
+### Проверка доступности
+
+- #### spine-01
+```
+spine-01#ping 10.49.1.1
+
+--- 10.49.1.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 18ms
+rtt min/avg/max/mdev = 2.117/2.757/4.847/1.052 ms, ipg/ewma 4.628/3.771 ms
+
+
+spine-01#ping 10.49.1.3
+
+--- 10.49.1.3 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 23ms
+rtt min/avg/max/mdev = 2.657/3.512/6.295/1.394 ms, ipg/ewma 5.767/4.859 ms
+
+
+spine-01#ping 10.49.1.5
+
+--- 10.49.1.5 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 28ms
+rtt min/avg/max/mdev = 1.994/3.311/7.644/2.173 ms, ipg/ewma 7.125/5.394 ms
+
+
+spine-01#ping 10.49.1.7
+
+--- 10.49.1.7 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 23ms
+rtt min/avg/max/mdev = 2.837/3.798/6.224/1.249 ms, ipg/ewma 5.764/4.968 ms
+```
+
+- #### spine-02
+```
+spine-02#ping 10.49.2.1
+
+--- 10.49.2.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 23ms
+rtt min/avg/max/mdev = 2.050/3.533/6.187/1.484 ms, ipg/ewma 5.774/4.796 ms
+
+
+spine-02#ping 10.49.2.3
+
+5 packets transmitted, 5 received, 0% packet loss, time 21ms
+rtt min/avg/max/mdev = 2.040/3.718/7.244/1.937 ms, ipg/ewma 5.285/3.893 ms
+
+
+spine-02#ping 10.49.2.5
+PING 10.49.2.5 (10.49.2.5) 72(100) bytes of data.
+
+5 packets transmitted, 5 received, 0% packet loss, time 33ms
+rtt min/avg/max/mdev = 2.420/4.124/9.306/2.618 ms, ipg/ewma 8.320/6.612 ms
+
+
+spine-02#ping 10.49.2.7
+
+5 packets transmitted, 5 received, 0% packet loss, time 12ms
+rtt min/avg/max/mdev = 1.946/2.319/3.256/0.477 ms, ipg/ewma 3.228/2.767 ms
+```
