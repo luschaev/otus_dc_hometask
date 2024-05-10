@@ -10,7 +10,7 @@
 
 ### Собранная схема сети
 
-![](images/clos_topology.png)
+![](01/images/clos_topology.png)
 
 ### Таблица адресов
 
@@ -30,7 +30,7 @@
 |          |          |              |            |
 | leaf-04  | Loopback0 | 10.49.255.4/32 |            |
 | leaf-04  |  Et1  | 10.49.1.7/31 | --- to spine-01 10.49.1.6 --- |
-| leaf-05  |  Et2  | 10.49.2.7/31 | --- to spine-02 10.49.2.6 --- |
+| leaf-04  |  Et2  | 10.49.2.7/31 | --- to spine-02 10.49.2.6 --- |
 |          |          |              |            |
 | spine-01 | Loopback0 | 10.49.251.1/32 |            |
 | spine-01 |  Et1  | 10.49.1.0/31 |  --- to leaf-01 10.49.1.1 ---  |
@@ -45,7 +45,7 @@
 | spine-02 |  Et4  | 10.49.2.6/31 |  --- to leaf-04 10.49.2.7 ---  |
 ### Конфигурация оборудования
 
-- #### [leaf-01](config/leaf-01.ios)
+- #### [leaf-01](01/config/leaf-01.ios)
 ```
 hostname leaf-01
 !
@@ -64,7 +64,7 @@ interface Loopback0
 !
 end
 ```
-- #### [leaf-02](config/leaf-02.ios)
+- #### [leaf-02](01/config/leaf-02.ios)
 ```
 hostname leaf-02
 !
@@ -84,7 +84,7 @@ interface Loopback0
 end
 
 ```
-- #### [leaf-03](config/leaf-03.ios)
+- #### [leaf-03](01/config/leaf-03.ios)
 ```
 hostname leaf-03
 !
@@ -103,7 +103,7 @@ interface Loopback0
 !
 end
 ```
-- #### [leaf-04](config/leaf-04.ios)
+- #### [leaf-04](01/config/leaf-04.ios)
 ```
 hostname leaf-04
 !
@@ -122,7 +122,7 @@ interface Loopback0
 !
 end
 ```
-- #### [spine-01](config/spine-01.ios)
+- #### [spine-01](01/config/spine-01.ios)
 ```
 hostname spine-01
 !
@@ -151,7 +151,7 @@ interface Loopback0
 !
 end
 ```
-- #### [spine-02](config/spine-02.ios)
+- #### [spine-02](01/config/spine-02.ios)
 ```
 hostname spine-02
 !
