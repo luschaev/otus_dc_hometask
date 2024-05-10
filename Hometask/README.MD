@@ -10,4 +10,4 @@
 
 ### Собранная схема сети
 
-![](images/clos_topolgy.jpg)
+![](images/clos_topology.png)
