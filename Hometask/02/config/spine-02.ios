@@ -1,0 +1,59 @@
+no aaa root
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model ribd
+!
+hostname spine-02
+!
+spanning-tree mode mstp
+!
+interface Ethernet1
+   description --- to leaf-01 10.49.2.1 ---
+   no switchport
+   ip address 10.49.2.0/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet2
+   description --- to leaf-02 10.49.2.3 ---
+   no switchport
+   ip address 10.49.2.2/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet3
+   description --- to leaf-03 10.49.2.5 ---
+   no switchport
+   ip address 10.49.2.4/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet4
+   description --- to leaf-04 10.49.2.7 ---
+   no switchport
+   ip address 10.49.2.6/31
+   ip ospf network point-to-point
+   ip ospf area 0.0.0.0
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.49.252.1/32
+   ip ospf area 0.0.0.0
+!
+interface Management1
+!
+ip routing
+!
+router ospf 1
+   router-id 10.49.252.1
+   max-lsa 12000
+!
+end
