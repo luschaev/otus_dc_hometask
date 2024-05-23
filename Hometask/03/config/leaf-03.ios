@@ -14,6 +14,8 @@ interface Ethernet1
    ip address 10.49.1.5/31
    isis enable 1
    isis network point-to-point
+   isis authentication mode md5
+   isis authentication key 7 KHWA0XKKZeJG8f+/WzG88A==
 !
 interface Ethernet2
    description --- to spine-02 10.49.2.4 ---
@@ -21,6 +23,8 @@ interface Ethernet2
    ip address 10.49.2.5/31
    isis enable 1
    isis network point-to-point
+   isis authentication mode md5
+   isis authentication key 7 KHWA0XKKZeJG8f+/WzG88A==
 !
 interface Ethernet3
 !

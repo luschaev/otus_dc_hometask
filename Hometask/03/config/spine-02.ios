@@ -14,6 +14,8 @@ interface Ethernet1
    ip address 10.49.2.0/31
    isis enable 1
    isis network point-to-point
+   isis authentication mode md5
+   isis authentication key 7 KHWA0XKKZeJG8f+/WzG88A==
 !
 interface Ethernet2
    description --- to leaf-02 10.49.2.3 ---
@@ -21,6 +23,8 @@ interface Ethernet2
    ip address 10.49.2.2/31
    isis enable 1
    isis network point-to-point
+   isis authentication mode md5
+   isis authentication key 7 KHWA0XKKZeJG8f+/WzG88A==
 !
 interface Ethernet3
    description --- to leaf-03 10.49.2.5 ---
@@ -28,6 +32,8 @@ interface Ethernet3
    ip address 10.49.2.4/31
    isis enable 1
    isis network point-to-point
+   isis authentication mode md5
+   isis authentication key 7 KHWA0XKKZeJG8f+/WzG88A==
 !
 interface Ethernet4
    description --- to leaf-04 10.49.2.7 ---
@@ -35,6 +41,8 @@ interface Ethernet4
    ip address 10.49.2.6/31
    isis enable 1
    isis network point-to-point
+   isis authentication mode md5
+   isis authentication key 7 KHWA0XKKZeJG8f+/WzG88A==
 !
 interface Ethernet5
 !
