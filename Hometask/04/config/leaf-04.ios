@@ -1,0 +1,40 @@
+hostname leaf-04
+!
+spanning-tree mode mstp
+!
+interface Ethernet1
+   description --- to spine-01 10.49.1.6 ---
+   no switchport
+   ip address 10.49.1.7/31
+!
+interface Ethernet2
+   description --- to spine-02 10.49.2.6 ---
+   no switchport
+   ip address 10.49.2.7/31
+!
+interface Ethernet3
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.49.255.4/32
+!
+interface Management1
+!
+ip routing
+!
+router bgp 65203
+   maximum-paths 4 ecmp 4
+   neighbor 10.49.1.6 remote-as 65100
+   neighbor 10.49.2.6 remote-as 65100
+   network 10.49.255.4/32
+!
+end
