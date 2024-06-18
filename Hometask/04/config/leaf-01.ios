@@ -6,11 +6,13 @@ interface Ethernet1
    description --- to spine-01 10.49.1.0 ---
    no switchport
    ip address 10.49.1.1/31
+   bfd interval 100 min-rx 100 multiplier 3
 !
 interface Ethernet2
    description --- to spine-02 10.49.2.0 ---
    no switchport
    ip address 10.49.2.1/31
+   bfd interval 100 min-rx 100 multiplier 3
 !
 interface Ethernet3
 !
@@ -31,10 +33,21 @@ interface Management1
 !
 ip routing
 !
+ip prefix-list PL_LOOPBACK
+   seq 10 permit 10.49.255.1/32
+!
+route-map RM_CONNECTED permit 10
+   match ip address prefix-list PL_LOOPBACK
+!
 router bgp 65200
    maximum-paths 4 ecmp 4
-   neighbor 10.49.1.0 remote-as 65100
-   neighbor 10.49.2.0 remote-as 65100
-   network 10.49.255.1/32
+   neighbor SPINE peer group
+   neighbor SPINE remote-as 65100
+   neighbor SPINE bfd
+   neighbor SPINE send-community
+   neighbor SPINE maximum-routes 1000
+   neighbor 10.49.1.0 peer group SPINE
+   neighbor 10.49.2.0 peer group SPINE
+   redistribute connected route-map RM_CONNECTED
 !
 end

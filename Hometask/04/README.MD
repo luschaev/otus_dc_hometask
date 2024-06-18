@@ -20,11 +20,22 @@
 ```
 ip routing
 !
+ip prefix-list PL_LOOPBACK
+   seq 10 permit 10.49.255.1/32
+!
+route-map RM_CONNECTED permit 10
+   match ip address prefix-list PL_LOOPBACK
+!
 router bgp 65200
    maximum-paths 4 ecmp 4
-   neighbor 10.49.1.0 remote-as 65100
-   neighbor 10.49.2.0 remote-as 65100
-   network 10.49.255.1/32
+   neighbor SPINE peer group
+   neighbor SPINE remote-as 65100
+   neighbor SPINE bfd
+   neighbor SPINE send-community
+   neighbor SPINE maximum-routes 1000
+   neighbor 10.49.1.0 peer group SPINE
+   neighbor 10.49.2.0 peer group SPINE
+   redistribute connected route-map RM_CONNECTED
 !
 end
 
@@ -35,13 +46,25 @@ end
 ```
 ip routing
 !
+ip prefix-list PL_LOOPBACK
+   seq 10 permit 10.49.255.2/32
+!
+route-map RM_CONNECTED permit 10
+   match ip address prefix-list PL_LOOPBACK
+!
 router bgp 65201
    maximum-paths 4 ecmp 4
-   neighbor 10.49.1.2 remote-as 65100
-   neighbor 10.49.2.2 remote-as 65100
-   network 10.49.255.2/32
+   neighbor SPINE peer group
+   neighbor SPINE remote-as 65100
+   neighbor SPINE bfd
+   neighbor SPINE send-community
+   neighbor SPINE maximum-routes 1000
+   neighbor 10.49.1.2 peer group SPINE
+   neighbor 10.49.2.2 peer group SPINE
+   redistribute connected route-map RM_CONNECTED
 !
 end
+
 ```
 
 - #### [leaf-03](config/leaf-03.ios)
@@ -49,26 +72,50 @@ end
 ```
 ip routing
 !
+ip prefix-list PL_LOOPBACK
+   seq 10 permit 10.49.255.3/32
+!
+route-map RM_CONNECTED permit 10
+   match ip address prefix-list PL_LOOPBACK
+!
 router bgp 65202
    maximum-paths 4 ecmp 4
-   neighbor 10.49.1.4 remote-as 65100
-   neighbor 10.49.2.4 remote-as 65100
-   network 10.49.255.3/32
+   neighbor SPINE peer group
+   neighbor SPINE remote-as 65100
+   neighbor SPINE bfd
+   neighbor SPINE send-community
+   neighbor SPINE maximum-routes 1000
+   neighbor 10.49.1.4 peer group SPINE
+   neighbor 10.49.2.4 peer group SPINE
+   redistribute connected route-map RM_CONNECTED
 !
 end
+
 ```
 - #### [leaf-04](config/leaf-04.ios)
 
 ```
 ip routing
 !
+ip prefix-list PL_LOOPBACK
+   seq 10 permit 10.49.255.4/32
+!
+route-map RM_CONNECTED permit 10
+   match ip address prefix-list PL_LOOPBACK
+!
 router bgp 65203
    maximum-paths 4 ecmp 4
-   neighbor 10.49.1.6 remote-as 65100
-   neighbor 10.49.2.6 remote-as 65100
-   network 10.49.255.4/32
+   neighbor SPINE peer group
+   neighbor SPINE remote-as 65100
+   neighbor SPINE bfd
+   neighbor SPINE send-community
+   neighbor SPINE maximum-routes 1000
+   neighbor 10.49.1.6 peer group SPINE
+   neighbor 10.49.2.6 peer group SPINE
+   redistribute connected route-map RM_CONNECTED
 !
 end
+
 ```
 
 
@@ -77,15 +124,26 @@ end
 ```
 ip routing
 !
+ip prefix-list PL_LOOPBACK
+   seq 10 permit 10.49.251.1/32
+!
+route-map RM_CONNECTED permit 10
+   match ip address prefix-list PL_LOOPBACK
+!
+peer-filter LEAF
+   10 match as-range 65200-65203 result accept
+!
 router bgp 65100
    maximum-paths 4 ecmp 4
-   neighbor 10.49.1.1 remote-as 65200
-   neighbor 10.49.1.3 remote-as 65201
-   neighbor 10.49.1.5 remote-as 65202
-   neighbor 10.49.1.7 remote-as 65203
-   network 10.49.251.1/32
+   bgp listen range 10.49.1.0/24 peer-group LEAF peer-filter LEAF
+   neighbor LEAF peer group
+   neighbor LEAF bfd
+   neighbor LEAF send-community
+   neighbor LEAF maximum-routes 1000
+   redistribute connected route-map RM_CONNECTED
 !
 end
+
 ```
 
 - #### [spine-02](config/spine-02.ios)
@@ -93,15 +151,26 @@ end
 ```
 ip routing
 !
+ip prefix-list PL_LOOPBACK
+   seq 10 permit 10.49.252.1/32
+!
+route-map RM_CONNECTED permit 10
+   match ip address prefix-list PL_LOOPBACK
+!
+peer-filter LEAF
+   10 match as-range 65200-65203 result accept
+!
 router bgp 65100
    maximum-paths 4 ecmp 4
-   neighbor 10.49.2.1 remote-as 65200
-   neighbor 10.49.2.3 remote-as 65201
-   neighbor 10.49.2.5 remote-as 65202
-   neighbor 10.49.2.7 remote-as 65203
-   network 10.49.252.1/32
+   bgp listen range 10.49.2.0/24 peer-group LEAF peer-filter LEAF
+   neighbor LEAF peer group
+   neighbor LEAF bfd
+   neighbor LEAF send-community
+   neighbor LEAF maximum-routes 1000
+   redistribute connected route-map RM_CONNECTED
 !
 end
+
 ```
 
 ---
