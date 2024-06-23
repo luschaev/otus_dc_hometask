@@ -1,0 +1,77 @@
+hostname spine-02
+!
+spanning-tree mode mstp
+!
+interface Ethernet1
+   description --- to leaf-01 10.49.2.1 ---
+   no switchport
+   ip address 10.49.2.0/31
+   bfd interval 100 min-rx 100 multiplier 3
+!
+interface Ethernet2
+   description --- to leaf-02 10.49.2.3 ---
+   no switchport
+   ip address 10.49.2.2/31
+   bfd interval 100 min-rx 100 multiplier 3
+!
+interface Ethernet3
+   description --- to leaf-03 10.49.2.5 ---
+   no switchport
+   ip address 10.49.2.4/31
+   bfd interval 100 min-rx 100 multiplier 3
+!
+interface Ethernet4
+   description --- to leaf-04 10.49.2.7 ---
+   no switchport
+   ip address 10.49.2.6/31
+   bfd interval 100 min-rx 100 multiplier 3
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.49.252.1/32
+!
+interface Management1
+!
+ip routing
+!
+ip prefix-list PL_LOOPBACK
+   seq 10 permit 10.49.252.1/32
+!
+route-map RM_CONNECTED permit 10
+   match ip address prefix-list PL_LOOPBACK
+!
+peer-filter EVPN
+   10 match as-range 65200-65203 result accept
+!
+peer-filter LEAF
+   10 match as-range 65200-65203 result accept
+!
+router bgp 65100
+   maximum-paths 4 ecmp 4
+   bgp listen range 10.49.255.0/24 peer-group EVPN peer-filter EVPN
+   bgp listen range 10.49.2.0/24 peer-group LEAF peer-filter LEAF
+   neighbor EVPN peer group
+   neighbor EVPN next-hop-unchanged
+   neighbor EVPN update-source Loopback0
+   neighbor EVPN ebgp-multihop 3
+   neighbor EVPN send-community extended
+   neighbor LEAF peer group
+   neighbor LEAF bfd
+   neighbor LEAF send-community extended
+   neighbor LEAF maximum-routes 1000
+   redistribute connected route-map RM_CONNECTED
+   !
+   address-family evpn
+      neighbor EVPN activate
+   !
+   address-family ipv4
+      neighbor EVPN activate
+!
+end

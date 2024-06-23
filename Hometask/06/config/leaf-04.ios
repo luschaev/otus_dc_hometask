@@ -1,0 +1,114 @@
+hostname leaf-04
+!
+spanning-tree mode mstp
+!
+vlan 100
+   name VLAN-100
+!
+vlan 200
+   name VLAN-200
+!
+vrf instance VPN-01
+!
+interface Ethernet1
+   description --- to spine-01 10.49.1.6 ---
+   no switchport
+   ip address 10.49.1.7/31
+   bfd interval 100 min-rx 100 multiplier 3
+!
+interface Ethernet2
+   description --- to spine-02 10.49.2.6 ---
+   no switchport
+   ip address 10.49.2.7/31
+   bfd interval 100 min-rx 100 multiplier 3
+!
+interface Ethernet3
+   switchport access vlan 100
+!
+interface Ethernet4
+   switchport access vlan 200
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.49.255.4/32
+!
+interface Loopback10
+   ip address 10.200.0.4/32
+!
+interface Management1
+!
+interface Vlan100
+   vrf VPN-01
+   ip address virtual 172.25.100.254/24
+!
+interface Vlan200
+   vrf VPN-01
+   ip address virtual 172.25.200.254/24
+!
+interface Vxlan1
+   vxlan source-interface Loopback10
+   vxlan udp-port 4789
+   vxlan vlan 100 vni 10100
+   vxlan vlan 200 vni 10200
+   vxlan vrf VPN-01 vni 155
+   vxlan learn-restrict any
+!
+ip virtual-router mac-address 00:00:00:00:00:04
+!
+ip routing
+ip routing vrf VPN-01
+!
+ip prefix-list PL_LOOPBACK
+   seq 10 permit 10.49.255.4/32
+   seq 20 permit 10.200.0.4/32
+!
+route-map RM_CONNECTED permit 10
+   match ip address prefix-list PL_LOOPBACK
+!
+router bgp 65203
+   maximum-paths 4 ecmp 4
+   neighbor EVPN peer group
+   neighbor EVPN remote-as 65100
+   neighbor EVPN update-source Loopback0
+   neighbor EVPN ebgp-multihop 3
+   neighbor EVPN send-community extended
+   neighbor SPINE peer group
+   neighbor SPINE remote-as 65100
+   neighbor SPINE bfd
+   neighbor SPINE send-community
+   neighbor SPINE maximum-routes 1000
+   neighbor 10.49.1.6 peer group SPINE
+   neighbor 10.49.2.6 peer group SPINE
+   neighbor 10.49.251.1 peer group EVPN
+   neighbor 10.49.252.1 peer group EVPN
+   redistribute connected route-map RM_CONNECTED
+   !
+   vlan 100
+      rd 65203:10100
+      route-target both 10:10100
+      redistribute learned
+   !
+   vlan 200
+      rd 65203:10200
+      route-target both 20:10200
+      redistribute learned
+   !
+   address-family evpn
+      neighbor EVPN activate
+   !
+   address-family ipv4
+      neighbor SPINE activate
+   !
+   vrf VPN-01
+      rd 65203:155
+      route-target import evpn 155:155
+      route-target export evpn 155:155
+!
+end
