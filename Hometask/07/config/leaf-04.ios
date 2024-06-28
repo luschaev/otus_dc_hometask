@@ -110,5 +110,6 @@ router bgp 65203
       rd 65203:155
       route-target import evpn 155:155
       route-target export evpn 155:155
+      redistribute connected
 !
 end
