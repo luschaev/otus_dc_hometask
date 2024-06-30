@@ -440,6 +440,9 @@ interface Loopback0
 interface Loopback1
  ip address 2.2.2.2 255.255.255.255
 !
+interface Loopback3
+ ip address 3.3.3.3 255.255.255.255
+!
 interface GigabitEthernet0/0.777
  encapsulation dot1Q 777
  ip address 172.31.0.2 255.255.255.252
@@ -452,6 +455,7 @@ router bgp 65300
   redistribute connected route-map RM_CONNECTED
   redistribute static
   neighbor 172.31.0.1 activate
+  default-information originate
  exit-address-family
 !
 ip route 0.0.0.0 0.0.0.0 Null0
