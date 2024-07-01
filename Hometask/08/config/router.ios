@@ -59,10 +59,13 @@ interface GigabitEthernet0/0.777
 !
 interface GigabitEthernet0/1
  no ip address
- shutdown
  duplex auto
  speed auto
  media-type rj45
+!
+interface GigabitEthernet0/1.888
+ encapsulation dot1Q 888
+ ip address 172.32.0.2 255.255.255.252
 !
 interface GigabitEthernet0/2
  no ip address
@@ -81,11 +84,13 @@ interface GigabitEthernet0/3
 router bgp 65300
  bgp log-neighbor-changes
  neighbor 172.31.0.1 remote-as 65203
+ neighbor 172.32.0.1 remote-as 65202
  !
  address-family ipv4
   redistribute connected route-map RM_CONNECTED
   redistribute static
   neighbor 172.31.0.1 activate
+  neighbor 172.32.0.1 activate
   default-information originate
  exit-address-family
 !
@@ -144,3 +149,4 @@ line vty 0 4
 no scheduler allocate
 !
 end
+

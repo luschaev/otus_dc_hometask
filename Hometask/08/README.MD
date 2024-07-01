@@ -269,19 +269,19 @@ end
 - #### [leaf-03](config/leaf-03.ios)
 
 ```
-vlan 10
-   name VLAN-10
+vlan 30,40,888
 !
-vlan 20
-   name VLAN-20
-!
-vrf instance VPN-01
+vrf instance VPN-02
 !
 interface Ethernet3
-   switchport access vlan 10
+   switchport access vlan 30
 !
 interface Ethernet4
-   switchport access vlan 20
+   switchport access vlan 40
+!
+interface Ethernet5
+   switchport trunk allowed vlan 888
+   switchport mode trunk
 !
 interface Loopback0
    ip address 10.49.255.3/32
@@ -289,26 +289,30 @@ interface Loopback0
 interface Loopback10
    ip address 10.200.0.3/32
 !
-interface Vlan10
-   vrf VPN-01
-   ip address virtual 172.25.10.254/24
+interface Vlan30
+   vrf VPN-02
+   ip address 172.25.30.254/24
 !
-interface Vlan20
-   vrf VPN-01
-   ip address virtual 172.25.20.254/24
+interface Vlan40
+   vrf VPN-02
+   ip address 172.25.40.254/24
+!
+interface Vlan888
+   vrf VPN-02
+   ip address 172.32.0.1/30
 !
 interface Vxlan1
    vxlan source-interface Loopback10
    vxlan udp-port 4789
-   vxlan vlan 10 vni 10010
-   vxlan vlan 20 vni 10020
-   vxlan vrf VPN-01 vni 155
+   vxlan vlan 30 vni 10030
+   vxlan vlan 40 vni 10040
+   vxlan vrf VPN-02 vni 165
    vxlan learn-restrict any
 !
 ip virtual-router mac-address 00:00:00:00:00:03
 !
 ip routing
-ip routing vrf VPN-01
+ip routing vrf VPN-02
 !
 router bgp 65202
    maximum-paths 4 ecmp 4
@@ -328,14 +332,14 @@ router bgp 65202
    neighbor 10.49.252.1 peer group EVPN
    redistribute connected route-map RM_CONNECTED
    !
-   vlan 10
-      rd 65202:10010
-      route-target both 10:10010
+   vlan 30
+      rd 65202:10030
+      route-target both 30:10030
       redistribute learned
    !
-   vlan 20
-      rd 65202:10020
-      route-target both 20:10020
+   vlan 40
+      rd 65202:10040
+      route-target both 40:10040
       redistribute learned
    !
    address-family evpn
@@ -343,14 +347,17 @@ router bgp 65202
    !
    address-family ipv4
       neighbor SPINE activate
+      neighbor 172.32.0.2 activate
    !
-   vrf VPN-01
-      rd 65202:155
-      route-target import evpn 155:155
-      route-target export evpn 155:155
+   vrf VPN-02
+      rd 65202:165
+      route-target import evpn 165:165
+      route-target export evpn 165:165
+      neighbor 172.32.0.2 remote-as 65300
       redistribute connected
 !
 end
+
 ```
 
 - #### [leaf-04](config/leaf-04.ios)
@@ -447,14 +454,20 @@ interface GigabitEthernet0/0.777
  encapsulation dot1Q 777
  ip address 172.31.0.2 255.255.255.252
 !
+interface GigabitEthernet0/1.888
+ encapsulation dot1Q 888
+ ip address 172.32.0.2 255.255.255.252
+!
 router bgp 65300
  bgp log-neighbor-changes
  neighbor 172.31.0.1 remote-as 65203
+ neighbor 172.32.0.1 remote-as 65202
  !
  address-family ipv4
   redistribute connected route-map RM_CONNECTED
   redistribute static
   neighbor 172.31.0.1 activate
+  neighbor 172.32.0.1 activate
   default-information originate
  exit-address-family
 !
@@ -702,21 +715,24 @@ VNI       VLAN       VRF          Source
 - #### leaf-03
 
 ```
-leaf-03#sh ip route vrf VPN-01
+leaf-03#sh ip route vrf VPN-02
 
-VRF: VPN-01
+VRF: VPN-02
 
 Gateway of last resort:
- B E      0.0.0.0/0 [200/0] via VTEP 10.200.0.4 VNI 155 router-mac 50:01:00:27:03:91 local-interface Vxlan1
+ B E      0.0.0.0/0 [200/0] via 172.32.0.2, Vlan888
 
- B E      1.1.1.1/32 [200/0] via VTEP 10.200.0.4 VNI 155 router-mac 50:01:00:27:03:91 local-interface Vxlan1
- B E      2.2.2.2/32 [200/0] via VTEP 10.200.0.4 VNI 155 router-mac 50:01:00:27:03:91 local-interface Vxlan1
- C        172.25.10.0/24 is directly connected, Vlan10
- C        172.25.20.0/24 is directly connected, Vlan20
- B E      172.25.100.0/24 [200/0] via VTEP 10.200.0.4 VNI 155 router-mac 50:01:00:27:03:91 local-interface Vxlan1
- B E      172.25.200.0/24 [200/0] via VTEP 10.200.0.4 VNI 155 router-mac 50:01:00:27:03:91 local-interface Vxlan1
- B E      172.31.0.0/30 [200/0] via VTEP 10.200.0.4 VNI 155 router-mac 50:01:00:27:03:91 local-interface Vxlan1
-
+ B E      1.1.1.1/32 [200/0] via 172.32.0.2, Vlan888
+ B E      2.2.2.2/32 [200/0] via 172.32.0.2, Vlan888
+ B E      172.25.10.50/32 [200/0] via 172.32.0.2, Vlan888
+ B E      172.25.10.0/24 [200/0] via 172.32.0.2, Vlan888
+ B E      172.25.20.0/24 [200/0] via 172.32.0.2, Vlan888
+ C        172.25.30.0/24 is directly connected, Vlan30
+ C        172.25.40.0/24 is directly connected, Vlan40
+ B E      172.25.100.0/24 [200/0] via 172.32.0.2, Vlan888
+ B E      172.25.200.0/24 [200/0] via 172.32.0.2, Vlan888
+ B E      172.31.0.0/30 [200/0] via 172.32.0.2, Vlan888
+ C        172.32.0.0/30 is directly connected, Vlan888
 
 ```
 ```
@@ -777,53 +793,33 @@ Vxlan1 is up, line protocol is up (connected)
   Remote MAC learning via EVPN
   VNI mapping to VLANs
   Static VLAN to VNI mapping is
-    [10, 10010]       [20, 10020]
+    [30, 10030]       [40, 10040]
   Dynamic VLAN to VNI mapping for 'evpn' is
-    [4092, 155]
+    [4093, 155]       [4094, 165]
   Note: All Dynamic VLANs used by VCS are internal VLANs.
         Use 'show vxlan vni' for details.
   Static VRF to VNI mapping is
-   [VPN-01, 155]
-  Headend replication flood vtep list is:
-    10 10.200.0.1
-    20 10.200.0.1
+   [VPN-02, 165]
   Shared Router MAC is 0000.0000.0000
+
 
 ```
 ```
-leaf-03#sh interfaces vxlan 1
-Vxlan1 is up, line protocol is up (connected)
-  Hardware is Vxlan
-  Source interface is Loopback10 and is active with 10.200.0.3
-  Listening on UDP port 4789
-  Replication/Flood Mode is headend with Flood List Source: EVPN
-  Remote MAC learning via EVPN
-  VNI mapping to VLANs
-  Static VLAN to VNI mapping is
-    [10, 10010]       [20, 10020]
-  Dynamic VLAN to VNI mapping for 'evpn' is
-    [4092, 155]
-  Note: All Dynamic VLANs used by VCS are internal VLANs.
-        Use 'show vxlan vni' for details.
-  Static VRF to VNI mapping is
-   [VPN-01, 155]
-  Headend replication flood vtep list is:
-    10 10.200.0.1
-    20 10.200.0.1
-  Shared Router MAC is 0000.0000.0000
-leaf-03#show vxlan vni
+
+leaf-03#sh vxlan vni
 VNI to VLAN Mapping for Vxlan1
 VNI         VLAN       Source       Interface       802.1Q Tag
 ----------- ---------- ------------ --------------- ----------
-10010       10         static       Ethernet3       untagged
-                                    Vxlan1          10
-10020       20         static       Ethernet4       untagged
-                                    Vxlan1          20
+10030       30         static       Ethernet3       untagged
+                                    Vxlan1          30
+10040       40         static       Ethernet4       untagged
+                                    Vxlan1          40
 
 VNI to dynamic VLAN Mapping for Vxlan1
 VNI       VLAN       VRF          Source
 --------- ---------- ------------ ------------
-155       4092       VPN-01       evpn
+155       4093                    evpn
+165       4094       VPN-02       evpn
 
 ```
 
@@ -931,102 +927,109 @@ VNI       VLAN       VRF          Source
 SRV-01#sh ip int b
 Interface              IP-Address      OK? Method Status                Protocol
 Vlan10                 172.25.10.50    YES NVRAM  up                    up
-SRV-01#
 SRV-01#ping 172.25.20.50
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 172.25.20.50, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 5/22/56 ms
-SRV-01#ping 172.25.10.10
+Success rate is 100 percent (5/5), round-trip min/avg/max = 9/16/37 ms
+
+SRV-01#ping 172.25.30.10
 Type escape sequence to abort.
-Sending 5, 100-byte ICMP Echos to 172.25.10.10, timeout is 2 seconds:
+Sending 5, 100-byte ICMP Echos to 172.25.30.10, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 63/84/133 ms
-SRV-01#ping 172.25.20.10
+Success rate is 100 percent (5/5), round-trip min/avg/max = 46/53/59 ms
+
+SRV-01#ping 172.25.40.10
 Type escape sequence to abort.
-Sending 5, 100-byte ICMP Echos to 172.25.20.10, timeout is 2 seconds:
+Sending 5, 100-byte ICMP Echos to 172.25.40.10, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 24/55/136 ms
+Success rate is 100 percent (5/5), round-trip min/avg/max = 44/48/57 ms
+
 SRV-01#ping 172.25.100.10
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 172.25.100.10, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 32/65/183 ms
+Success rate is 100 percent (5/5), round-trip min/avg/max = 22/26/32 ms
+
 SRV-01#ping 172.25.200.10
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 172.25.200.10, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 17/63/219 ms
+Success rate is 100 percent (5/5), round-trip min/avg/max = 21/26/35 ms
+
 SRV-01#ping 1.1.1.1
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 1.1.1.1, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 18/26/40 ms
+Success rate is 100 percent (5/5), round-trip min/avg/max = 23/27/30 ms
+
 SRV-01#ping 2.2.2.2
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 2.2.2.2, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 15/15/16 ms
+Success rate is 100 percent (5/5), round-trip min/avg/max = 22/34/49 ms
+
 SRV-01#ping 3.3.3.3
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 3.3.3.3, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 36/62/159 ms
-
+Success rate is 100 percent (5/5), round-trip min/avg/max = 26/29/33 ms
 
 ```
 
-- #### client-07
+- #### client-05
 
 ```
 VPCS> sh ip
 
 NAME        : VPCS[1]
-IP/MASK     : 172.25.100.10/24
-GATEWAY     : 172.25.100.254
+IP/MASK     : 172.25.30.10/24
+GATEWAY     : 172.25.30.254
 DNS         :
-MAC         : 00:50:79:66:68:0d
+MAC         : 00:50:79:66:68:0b
 LPORT       : 20000
 RHOST:PORT  : 127.0.0.1:30000
 MTU         : 1500
 
 VPCS> ping 172.25.10.50 -c 2
 
-84 bytes from 172.25.10.50 icmp_seq=1 ttl=253 time=34.999 ms
-84 bytes from 172.25.10.50 icmp_seq=2 ttl=253 time=31.212 ms
+84 bytes from 172.25.10.50 icmp_seq=1 ttl=251 time=54.338 ms
+84 bytes from 172.25.10.50 icmp_seq=2 ttl=251 time=29.631 ms
 
 VPCS> ping 172.25.20.50 -c 2
 
-84 bytes from 172.25.20.50 icmp_seq=1 ttl=253 time=32.153 ms
-84 bytes from 172.25.20.50 icmp_seq=2 ttl=253 time=25.676 ms
+84 bytes from 172.25.20.50 icmp_seq=1 ttl=251 time=44.202 ms
+84 bytes from 172.25.20.50 icmp_seq=2 ttl=251 time=64.482 ms
 
-VPCS> ping 172.25.10.10 -c 2
+VPCS> ping 172.25.40.10 -c 2
 
-84 bytes from 172.25.10.10 icmp_seq=1 ttl=62 time=28.715 ms
-84 bytes from 172.25.10.10 icmp_seq=2 ttl=62 time=24.229 ms
+84 bytes from 172.25.40.10 icmp_seq=1 ttl=63 time=12.066 ms
+84 bytes from 172.25.40.10 icmp_seq=2 ttl=63 time=21.611 ms
 
-VPCS> ping 172.25.20.10 -c 2
+VPCS> ping 172.25.100.10 -c 2
 
-84 bytes from 172.25.20.10 icmp_seq=1 ttl=62 time=43.869 ms
-84 bytes from 172.25.20.10 icmp_seq=2 ttl=62 time=24.788 ms
+84 bytes from 172.25.100.10 icmp_seq=1 ttl=61 time=45.910 ms
+84 bytes from 172.25.100.10 icmp_seq=2 ttl=61 time=29.807 ms
 
 VPCS> ping 172.25.200.10 -c 2
 
-84 bytes from 172.25.200.10 icmp_seq=1 ttl=63 time=26.728 ms
-84 bytes from 172.25.200.10 icmp_seq=2 ttl=63 time=12.009 ms
+84 bytes from 172.25.200.10 icmp_seq=1 ttl=61 time=26.081 ms
+84 bytes from 172.25.200.10 icmp_seq=2 ttl=61 time=26.825 ms
 
 VPCS> ping 1.1.1.1 -c 2
 
-84 bytes from 1.1.1.1 icmp_seq=1 ttl=254 time=16.096 ms
-84 bytes from 1.1.1.1 icmp_seq=2 ttl=254 time=12.862 ms
+84 bytes from 1.1.1.1 icmp_seq=1 ttl=254 time=13.010 ms
+84 bytes from 1.1.1.1 icmp_seq=2 ttl=254 time=17.610 ms
 
 VPCS> ping 2.2.2.2 -c 2
 
-84 bytes from 2.2.2.2 icmp_seq=1 ttl=254 time=14.714 ms
-84 bytes from 2.2.2.2 icmp_seq=2 ttl=254 time=5.883 ms
+84 bytes from 2.2.2.2 icmp_seq=1 ttl=254 time=13.666 ms
+84 bytes from 2.2.2.2 icmp_seq=2 ttl=254 time=17.450 ms
 
 VPCS> ping 3.3.3.3 -c 2
 
-84 bytes from 3.3.3.3 icmp_seq=1 ttl=254 time=17.547 ms
-84 bytes from 3.3.3.3 icmp_seq=2 ttl=254 time=16.347 ms
+84 bytes from 3.3.3.3 icmp_seq=1 ttl=254 time=13.594 ms
+84 bytes from 3.3.3.3 icmp_seq=2 ttl=254 time=13.992 ms
+
+
 ```
